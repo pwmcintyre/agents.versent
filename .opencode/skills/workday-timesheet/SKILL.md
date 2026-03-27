@@ -1,6 +1,8 @@
-# Skill: workday-timesheet
-
-Complete or review a Workday timesheet on behalf of the user via the browser.
+---
+name: workday-timesheet
+description: Fill in, review, and submit a Workday timesheet via the browser using Microsoft SSO. Use when the user asks to enter time, check missing hours, or submit timesheets in Workday.
+compatibility: opencode
+---
 
 ## when to use
 
