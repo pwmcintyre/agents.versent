@@ -1,90 +1,24 @@
 ---
 name: workday-timesheet
-description: Fill in, review, and submit a Workday timesheet via the browser using Microsoft SSO. Use when the user asks to enter time, check missing hours, or submit timesheets in Workday.
+description: Fill in timesheets, request leave, or manage absences in Workday via the browser using Microsoft SSO. Use when the user asks to enter time, submit timesheets, or request annual/personal leave.
 compatibility: opencode
 ---
 
-## when to use
+## general
 
-Invoke this skill when the user asks to:
-- fill in, submit, or review their Workday timesheet
-- check what hours are missing or unsubmitted
-- enter time for a specific day or week
+Use the `playwright-versent` browser (Microsoft SSO). SSO is automatic — no credentials needed.
 
-## access
+**Workday home:** https://wd3.myworkday.com/aett/d/home.htmld
 
-Use the `playwright-versent` browser (Microsoft SSO profile). SSO is automatic — no credentials are needed.
+Standard day: **7.6 hours**. Standard week (no holidays): **38 hours**.
 
-**Direct link (preferred):**
-```
-https://wd3.myworkday.com/aett/d/task/2998$10895.htmld
-```
+Always treat Workday's UI as the source of truth for dates, public holidays, and leave balances — never rely on training data for these.
 
-**Backup — navigate from Workday home:**
-1. Go to https://myapps.microsoft.com/
-2. Click the **Workday** tile — SSO signs you in automatically
-3. In the Workday search box, type **"Enter My Time"** and select it from results (it appears in recent searches after first use)
+## sub-tasks
 
-## orientation
+Read the relevant reference doc before starting:
 
-- The timesheet uses a **weekly calendar view** (Mon–Sun)
-- Navigate weeks with **Previous Week** / **Next Week** buttons
-- The **Summary** panel (bottom of page) shows total hours for the current week
-- Time entries show a status: `Not Submitted` → submitted → `Approved`
-
-## before entering time
-
-Check each day carefully:
-
-| condition | action |
+| task | reference |
 |---|---|
-| Day already has hours entered | skip — do not duplicate |
-| Public holiday (e.g. Good Friday) | auto-populated — skip |
-| Absence / leave already entered | auto-populated from absence portal — skip |
-| Future day (not yet reached) | skip unless user explicitly asks to pre-fill |
-| Submitted or approved | skip |
-
-## entering time — Quick Add workflow
-
-Use **Quick Add** (not "Enter Time for Worker" — that is a manager function).
-
-1. Click **Actions** → **Quick Add**
-2. Select **Time Type** → choose from Most Recently Used or search for the project
-3. Click **Next**
-4. In the hours grid, click the cell for each day and type the number of hours
-5. Click **OK** → confirm "Quick Add Complete"
-6. Click **Review** → the Submit Time dialog appears
-7. Verify the date range and total hours shown
-8. Click **Submit**
-
-## submitting
-
-- You can submit one or multiple days in a single Submit action — Workday batches the current week
-- After clicking Submit, a confirmation dialog shows "You have submitted"
-- Entries move to `Approved` status once the manager approves (often within minutes)
-
-## time period locking
-
-Workday locks time periods at month end (e.g. the March period locks 31 March). Entries for a locked period cannot be modified. Check the **Time Period End** / **Time Period Lockout** labels on entries.
-
-## example project entry
-
-> This is an example — confirm the correct project, billing type, and hours with the user before entering.
-
-| field | example value |
-|---|---|
-| Project | PROJ-004249 CBA \| Digital Team Augmentation > Delivery > Build |
-| Hours | 7.6 per day |
-| Billing | Billable |
-| Sub-type | Delivery > Build |
-| Auto-filled | Project Role, Cost Center, Region, Practice |
-
-Standard week: 7.6h × 5 days = 38h
-
-## what to report back
-
-After completing the timesheet, tell the user:
-- Which days were filled and submitted
-- Which days were skipped and why (holiday, leave, already entered, future)
-- The total hours submitted
-- Any warnings (e.g. period locking soon, entries not yet approved)
+| Enter, submit, or correct timesheet hours | `reference/timesheets.md` |
+| Request annual leave, personal leave, or any absence | `reference/leave.md` |
