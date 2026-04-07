@@ -52,6 +52,24 @@ Apple's own machine learning framework. Models run directly on Metal with no tra
 - **Performance:** often edges out Ollama on raw t/s for generation; prompt processing is fast
 - **Install:** `pip install mlx-lm` — see [setup/mlx.md](./setup/mlx.md)
 
+Important MLX gotchas (documented from experiments)
+- mlx-lm: For some models (notably Gemma 4 variants) you must install mlx-lm from GitHub HEAD; PyPI releases (0.31.1) may not support newer model types. Example: `pip install git+https://github.com/ml-explore/mlx-lm.git`.
+- Server max-tokens: start the MLX server with a large `--max-tokens` (e.g. 8000). The server default is 512 and can truncate or prevent long chain-of-thought generations even if per-request `max_tokens` is set.
+- Thinking mode: several MLX quantizations (Gemma 4, some Qwen distilled variants) emit long "thinking" traces in `delta.reasoning` before `delta.content`. This increases TTFT and can produce very long intermediate streams — disable via `--chat-template-args '{"enable_thinking":false}'` if you want lower latency, or handle `delta.reasoning` specially in your runner (see `benchmark/run.mjs`).
+- HF auth & cached snapshots: if you downloaded models with `hf` CLI, Hugging Face stores snapshots under `~/.cache/huggingface/hub/.../snapshots/<id>/`. Some MLX server code expects `config.json` at the model root; if you see FileNotFoundError, materialise snapshot files into the top-level dir (we symlinked snapshot contents into the model dir during testing).
+
+Quick provider validation (curl)
+- Start MLX server: `~/.venvs/mlx/bin/mlx_lm.server --model <path-or-hf-repo> --host 127.0.0.1 --port 8080 --max-tokens 8000 --chat-template-args '{"enable_thinking":false}'`
+- Test endpoint:
+
+```sh
+curl -sS -X POST http://127.0.0.1:8080/v1/chat/completions \
+  -H 'Content-Type: application/json' \
+  -d '{"model":"<repo-or-cache-name>","messages":[{"role":"system","content":"You are a helpful assistant."},{"role":"user","content":"Say hi."}],"stream":false}'
+```
+
+If you get a JSON completion (id, choices, usage) the server and model are reachable. If the request hangs or the server returns errors, `tail -f /tmp/mlx-server.log` (or the server log file) while reproducing the request — common failures include BrokenPipeError or ValueError shape mismatches (model/quant incompatibility).
+
 ### Not recommended
 
 | Engine | Reason |

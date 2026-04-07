@@ -23,3 +23,13 @@ You are acting as a company-aware assistant for Peter in his work at Versent. Th
 | MS Teams | calendar, video conference meetings |
 | Slack | day-to-day chat |
 | Workday | HR — leave/absences, personal info, performance reviews, timesheets |
+
+## repo notes: local-llm
+
+- This repository contains a `local-llm` subfolder documenting experiments for running local LLMs on Apple Silicon and wiring them into OpenCode TUI.
+- Key files:
+  - `local-llm/README.md` — research summary and fast-start notes for Ollama and MLX
+  - `local-llm/PLAN.md` — plan, progress, decisions, and findings
+  - `opencode.json` — project-level OpenCode provider blocks for Ollama and MLX (models added during experiments)
+
+Contact: Peter (maintainer) for help reproducing the environment or running the benchmark.

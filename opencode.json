@@ -34,6 +34,25 @@
         }
       }
     }
+    ,
+    "mlx": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "MLX (local)",
+      "options": {
+        "baseURL": "http://localhost:8080/v1"
+      },
+      "models": {
+        "mlx-community/Qwen3.5-27B-Claude-4.6-Opus-Distilled-MLX-4bit": {
+          "name": "Qwen3.5 27B Claude-4.6 Distilled (MLX 4-bit) — fits 32GB Macs",
+          "limit": { "context": 32768, "output": 8192 }
+        }
+        ,
+        "lmstudio-community/Qwen3-Coder-30B-A3B-Instruct-MLX-4bit": {
+          "name": "Qwen3 Coder 30B A3B Instruct (MLX 4-bit) — coding-focused",
+          "limit": { "context": 32768, "output": 8192 }
+        }
+      }
+    }
   },
   "mcp": {
     "notion": {

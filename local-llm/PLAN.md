@@ -311,3 +311,13 @@ more interesting for subagent routing.
 | 2026-04-07 | MLX head-to-head partially blocked by Gemma 4 thinking mode | `mlx-community/gemma-4-26b-a4b-it-4bit` has thinking always on — reasoning consumes 500–8000 tokens before content; Ollama's `gemma4:26b` has thinking off by default. Not comparable. Speed/TTFT still measured: MLX 37.7 t/s (+36%) and ~1.4s TTFT (vs Ollama 31.8s). |
 | 2026-04-07 | mlx-lm must be installed from GitHub HEAD for gemma4 | PyPI 0.31.1 throws `Model type gemma4 not supported`. Install with `pip install git+https://github.com/ml-explore/mlx-lm.git` |
 | 2026-04-07 | MLX server requires `--max-tokens 8000` on startup | Default is 512; per-request `max_tokens` is ignored if below server default |
+
+## Findings / Pivots — 2026-04-07 additions
+
+- MLX tooling and model compatibility:
+  - `mlx-lm` should be installed from GitHub HEAD for the latest model support (Gemma 4 required this). Pin the commit used for reproducibility.
+  - Some MLX quantizations (Gemma 4, Qwen3.5 distillations) use an internal thinking mode that streams tokens in `delta.reasoning` before `delta.content`. This affects TTFT and can break judge-based scoring unless you either disable thinking (`enable_thinking:false`) or handle reasoning tokens specially (our runner tracks reasoning_tokens separately and excludes them from judge input).
+  - Hugging Face snapshot layout: if model files are present only under `snapshots/<id>/`, symlink or materialise those files into the top-level model dir so `mlx_lm.server` finds `config.json` and tokenizer files.
+
+- Judge considerations:
+  - GitHub Copilot (claude-sonnet-4.6) judge calls are rate-limited. For large benchmark sweeps use `--no-judge` and run judge passes later to avoid 429s.
