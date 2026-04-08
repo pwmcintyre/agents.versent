@@ -45,8 +45,11 @@ const ENDPOINT_OVERRIDE = args['endpoint'];
 const TIMEOUT_TTFT_MS = parseInt(args['timeout-ttft'] ?? '120', 10) * 1000;  // ms to first token
 const TIMEOUT_TOKEN_MS = parseInt(args['timeout-token'] ?? '45', 10) * 1000; // ms between tokens (reset each token)
 const MAX_OUTPUT_TOKENS = parseInt(args['max-tokens'] ?? '2048', 10);         // hard cap — stops runaway reasoning models
-const JUDGE_MODEL = 'claude-sonnet-4.6';
-const JUDGE_ENDPOINT = 'https://api.githubcopilot.com/chat/completions';
+// Judge configuration: prefer OpenAI GPT-5 mini when OPENAI_API_KEY is set,
+// otherwise fall back to GitHub Copilot (claude-sonnet) if GH auth is available.
+const JUDGE_MODEL = process.env.OPENAI_API_KEY ? 'gpt-5-mini' : 'claude-sonnet-4.6';
+const OPENAI_JUDGE_ENDPOINT = 'https://api.openai.com/v1/chat/completions';
+const COPILOT_JUDGE_ENDPOINT = 'https://api.githubcopilot.com/chat/completions';
 const COPILOT_INTEGRATION_HEADER = 'vscode-chat';
 
 function parseArgs(argv) {
@@ -313,13 +316,52 @@ Respond ONLY with valid JSON (no markdown, no code fences):
 {"accuracy": <1-10>, "completeness": <1-10>, "conciseness": <1-10>, "rationale": "<one sentence>"}`;
 
 async function judgeResponse(prompt, response, criteria) {
-  const token = getCopilotToken();
-  if (!token) return null;
+  // Prefer OpenAI GPT-5 mini if OPENAI_API_KEY is present
+  const openaiKey = process.env.OPENAI_API_KEY;
+  const ghToken = getCopilotToken();
 
   const userMsg = `## Evaluation criteria\n${criteria}\n\n## Original prompt\n${prompt}\n\n## Response to evaluate\n${response}`;
 
+  if (openaiKey) {
+    const body = {
+      model: JUDGE_MODEL, // gpt-5-mini
+      messages: [
+        { role: 'system', content: JUDGE_SYSTEM },
+        { role: 'user', content: userMsg },
+      ],
+      stream: false,
+      max_tokens: 256,
+    };
+
+    try {
+      const resp = await fetch(OPENAI_JUDGE_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${openaiKey}`,
+        },
+        body: JSON.stringify(body),
+      });
+      if (!resp.ok) {
+        const err = await resp.text();
+        console.warn(`  OpenAI judge error HTTP ${resp.status}: ${err.slice(0, 200)}`);
+        return null;
+      }
+      const data = await resp.json();
+      const text = data.choices?.[0]?.message?.content ?? '';
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error(`No JSON object found in judge response: ${text.slice(0, 80)}`);
+      return JSON.parse(jsonMatch[0]);
+    } catch (err) {
+      console.warn(`  OpenAI Judge parse error: ${err.message}`);
+      return null;
+    }
+  }
+
+  // Fallback: GitHub Copilot judge
+  if (!ghToken) return null;
   const body = {
-    model: JUDGE_MODEL,
+    model: 'claude-sonnet-4.6',
     messages: [
       { role: 'system', content: JUDGE_SYSTEM },
       { role: 'user', content: userMsg },
@@ -329,11 +371,11 @@ async function judgeResponse(prompt, response, criteria) {
   };
 
   try {
-    const resp = await fetch(JUDGE_ENDPOINT, {
+    const resp = await fetch(COPILOT_JUDGE_ENDPOINT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: `Bearer ${ghToken}`,
         'Copilot-Integration-Id': COPILOT_INTEGRATION_HEADER,
       },
       body: JSON.stringify(body),
@@ -341,14 +383,12 @@ async function judgeResponse(prompt, response, criteria) {
 
     if (!resp.ok) {
       const err = await resp.text();
-      console.warn(`  Judge error HTTP ${resp.status}: ${err.slice(0, 100)}`);
+      console.warn(`  Copilot judge error HTTP ${resp.status}: ${err.slice(0, 100)}`);
       return null;
     }
 
     const data = await resp.json();
     const text = data.choices?.[0]?.message?.content ?? '';
-
-    // Extract JSON object robustly — model may wrap it in prose or code fences
     const jsonMatch = text.match(/\{[\s\S]*\}/);
     if (!jsonMatch) throw new Error(`No JSON object found in judge response: ${text.slice(0, 80)}`);
     return JSON.parse(jsonMatch[0]);

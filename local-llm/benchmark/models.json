@@ -120,7 +120,7 @@
     "model": "mlx-community/gemma-4-26b-a4b-it-4bit",
     "category": "general+coding",
     "num_ctx": 32768,
-    "installed": false,
+    "installed": true,
     "pull": "python3 -m mlx_lm.generate --model mlx-community/gemma-4-26b-a4b-it-4bit --prompt test --max-tokens 1",
     "notes": "Head-to-head comparison with gemma4:26b Ollama. Requires: pip install --upgrade mlx-vlm."
   },
@@ -156,7 +156,7 @@
     "model": "lmstudio-community/Qwen3-Coder-30B-A3B-Instruct-MLX-4bit",
     "category": "coding",
     "num_ctx": 32768,
-    "installed": false,
+    "installed": true,
     "pull": "(download with HF)",
     "notes": "Coding-focused Qwen3 Coder 30B (MLX 4-bit)."
   },
