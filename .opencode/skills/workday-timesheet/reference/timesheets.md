@@ -41,6 +41,20 @@ Use **Quick Add** (not "Enter Time for Worker" — that is a manager function).
 8. Click **Review** → verify date range and total hours
 9. Click **Submit**
 
+## adding a comment to an entry
+
+The **Comment** field is on the individual entry, not the weekly submission. It lives in the Details section of the "Enter Time" dialog (below Practice, above Attachments).
+
+Quick Add does not expose the Comment field — you must edit each entry afterwards:
+
+1. Click the entry link on the calendar (e.g. "VER-101 7.6 Hours...")
+2. The **Enter Time** dialog opens
+3. In the **Details** section, find the **Comment** textbox
+4. Type the comment
+5. Click **OK**
+
+**VER project codes require a comment on every entry.** If entering a VER-prefixed project (e.g. VER-101-PS-STH Back to Base), always add a comment explaining the activity (e.g. "Internal meetings", "Travel", "Admin") before submitting. Ask the user what comment to use if not specified.
+
 ## deleting or correcting an entry
 
 1. Click the entry link on the calendar (e.g. "CBA | Digital Team Augmentation 7.6 Hours...")

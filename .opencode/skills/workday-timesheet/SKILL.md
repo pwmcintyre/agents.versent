@@ -1,7 +1,7 @@
 ---
 name: workday-timesheet
 description: Fill in timesheets, request leave, or manage absences in Workday via the browser using Microsoft SSO. Use when the user asks to enter time, submit timesheets, or request annual/personal leave.
-compatibility: opencode
+compatibility: all
 ---
 
 ## general
